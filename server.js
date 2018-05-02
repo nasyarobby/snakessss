@@ -11,6 +11,8 @@ var io = require('socket.io')(server);
 var port = process.env.PORT || 3001;
 var _ = require('lodash');
 
+var frontEnd = "https://snakessss.herokuapp.com";
+
 var lastUpdateTime = (new Date()).getTime();
 //var rooms = {};
 var rooms = new Rooms();
@@ -249,7 +251,7 @@ Rooms.prototype.getSnakeBySocketId = function (socketid) {
 io.on("connection", function (socket) {
     // everytime a user connect to a room.
     socket.on("join", function (data) {
-        var room = data.room;
+        var room = data.room=="" ? "Room101" : data.room;
         var clientName = data.name;
         var currentRoom;
 

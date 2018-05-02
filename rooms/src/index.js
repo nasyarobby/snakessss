@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 var local = false;
-var gameServer = local ? "http://localhost:3001" : "https://snakessss-server.herokuapp.com/;
+var gameServer = local ? "http://localhost:3001" : "https://snakessss-server.herokuapp.com";
 class Name extends React.Component {
     constructor(props) {
         super(props);
