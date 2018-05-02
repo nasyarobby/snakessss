@@ -12,20 +12,21 @@ var userState = 1;
 // 2 : connected, color chosen, prompt readiness
 // 3 : Ready, waiting for other
 var keyInput, chooseColorOptions, readySwitch;
-var room = "101";
 var playerInRoom = [];
 
-// TODO: Hack name
 var names = [
     "Nasyarobby",
     "Nugraha",
     "Robby",
     "NSRB",
-    "NSRB1987",
-    "Zenn"
+    "NSRB1987"
 ];
+var windowPath = window.location.pathname;
+var params = windowPath.split("/");
 
-var name = names[randomIntFromInterval(0, 5)];
+var room = params[1];
+var name = params[2] ? params[2] : names[randomIntFromInterval(0, 5)];
+
 var playerId;
 function setup() {
     engine.canvas.width = 610;
@@ -215,21 +216,25 @@ Arena.prototype.update = function () {
     if (gameState == 3) {
         switch (keyInput) {
             case 65: // A
+            case 37: // left arrow
                 socket.emit('input', {
                     direction: 'left'
                 });
                 break;
             case 87: // W
+            case 38: // up arrow
                 socket.emit('input', {
                     direction: 'up'
                 });
                 break;
             case 68: // D
+            case 39: // right arrow
                 socket.emit('input', {
                     direction: 'right'
                 });
                 break;
             case 83: // S
+            case 40: // down arrow
                 socket.emit('input', {
                     direction: 'down'
                 });
@@ -375,17 +380,20 @@ ColorOptions.prototype.update = function (panel) {
     if (userState == 1) {
         switch (keyInput) {
             case 87:
+            case 38: // up arrow
                 this.cursor--;
                 if (this.cursor < 0) {
                     this.cursor = this.options.length - 1;
                 }
                 break;
             case 83:
+            case 40: // down arrow
                 this.cursor++;
                 if (this.cursor >= this.options.length)
                     this.cursor = 0;
                 break;
             case 13:
+            case 32:
                 this.selected();
                 break;
         }
@@ -432,6 +440,7 @@ ReadySwitch.prototype.update = function (panel) {
     if ((userState == 2 || userState == 3) && gameState != 3) {
         switch (keyInput) {
             case 87:
+            case 38: // up arrow
                 this.cursor--;
                 if (this.cursor < 0) {
                     this.cursor = this.options.length - 1;
@@ -439,6 +448,7 @@ ReadySwitch.prototype.update = function (panel) {
                 this.selected();
                 break;
             case 83:
+            case 40: // down arrow
                 this.cursor++;
                 if (this.cursor >= this.options.length)
                     this.cursor = 0;

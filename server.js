@@ -8,7 +8,7 @@ var path = require('path');
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 3001;
 var _ = require('lodash');
 
 var lastUpdateTime = (new Date()).getTime();
@@ -31,7 +31,7 @@ function Room(name) {
     this.initCollisionOutcomes();
     this.pixels = [];
 
-    this.goalScore = 1;
+    this.goalScore = 3;
 }
 
 /* OBJECT: Room */
@@ -370,19 +370,6 @@ function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-/* EXPRESS */
-
-app.use(express.static('client'));
-server.listen(port, function () { });
-app.get('/jquery.js', function (req, res) {
-    res.sendFile(path.join(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
-})
-app.get('/rooms', function (req, res) {
-    var roomList = _.keys(rooms);
-    var html = roomList.join('<br />');
-    html += '<hr />';
-    res.send(html);
-});
 
 /* IN-GAME OBJECTS */
 /* OBJECT: Cell*/
@@ -543,3 +530,33 @@ function Snake(startingX, startingY, color, id, name) {
         this.body.push(new SnakeHead(newPosX, newPosY, this));
     }
 }
+
+/* EXPRESS */
+
+app.use(express.static('client'));
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
+  
+
+server.listen(port, function () { });
+app.get("/:roomname/:username", function(req, res) {
+    res.sendFile(path.join(__dirname + '/client/index.html'));
+})
+app.get('/jquery.js', function (req, res) {
+    res.sendFile(path.join(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
+})
+app.get('/roomlist', function (req, res) {
+    var roomList = _.keys(rooms.rooms);
+    var ret = {results: []};
+    roomList.forEach(e => {
+        let snakes = rooms.rooms[e].getPlayersInfoSocketMessage();
+        let running = rooms.rooms[e].isRunning();
+        ret.results.push({room: e, snakes: snakes, running: running})
+    })
+    res.setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify(ret));
+});
