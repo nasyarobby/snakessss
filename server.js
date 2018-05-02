@@ -24,7 +24,7 @@ function Room(name) {
     this.name = name;
     this.snakes = {};
     this.fruits = [];
-    this.fruits.push(new Fruit(randomIntFromInterval(0, 36), randomIntFromInterval(0, 36)));
+    this.fruits.push(new Fruit(randomIntFromInterval(0, 35), randomIntFromInterval(0, 35)));
     this.state = 1;
     this.matchStartTimestamp = null;
     this.collisionOutcomes = [];
@@ -519,8 +519,8 @@ function Snake(startingX, startingY, color, id, name) {
             this.score--;
             this.shrink();
         }
-        let newPosX = randomIntFromInterval(0, 36);
-        let newPosY = randomIntFromInterval(0, 36);
+        let newPosX = randomIntFromInterval(0, 35);
+        let newPosY = randomIntFromInterval(0, 35);
         var newPos = newPosY * 36 + newPosX;
         while (room.pixels[newPos] != undefined) {
             newPos++;

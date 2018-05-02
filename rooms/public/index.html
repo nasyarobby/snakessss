@@ -1,65 +1,110 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
-    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <title>Snakessss - By Nasyarobby NP.</title>
-    <style>
-      .jumbotron {
-background-image: url("/bg.jpg");
-background-size: cover;
-background-position: center center;
-color:white;}
-    </style>
-  </head>
-  <body>
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-      <a class="navbar-brand" href="#">Snakessss</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Room List <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item active">
-            <a class="nav-link" href="#">How to Play</a>
-          </li>
-          <li class="nav-item active">
-              <a class="nav-link" href="#">About </a>
-            </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="https://github.com/nasyarobby/snakessss">Github</a>
-              </li>
-        </ul>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
+
+  <title>Snakessss - By Nasyarobby NP.</title>
+  <style>
+    .jumbotron {
+      background-image: url("/bg.jpg");
+      background-size: cover;
+      background-position: center center;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+    <a class="navbar-brand" href="#">Snakessss</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/" >Room List
+            <span class="sr-only">(current)</span>
+          </a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="#"  data-toggle="modal" data-target="#howtoplay">How to Play</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="#">About </a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="https://github.com/nasyarobby/snakessss">Github</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <main role="main" class="container">
+    <div class="alert alert-warning" role="alert">
+      This simple game is still under development. You might see some hiccup along the way, but in the mean time... enjoy!
+    </div>
+    <div class="jumbotron" style="background-color: #ccc;">
+      <h1>Snakessss</h1>
+      <h5>by Nasyarobby NP</h5>
+      <div class="row">
+        <div class="col-sm-6">
+          <p class="lead">Snakessss is a multiplayer snake games which enables you to play with other player in realtime manner.</p>
+          <a class="btn btn-lg btn-primary" href="../../components/navbar/" role="button" data-toggle="modal" data-target="#howtoplay">How to Play &raquo;</a>
+        </div>
       </div>
-    </nav>
 
-    <main role="main" class="container">
-        <div class="alert alert-warning" role="alert">
-            This simple game is still under development. You might see some hiccup along the way, but in the mean time... enjoy!
-          </div>
-      <div class="jumbotron" style="background-color: #ccc;">
-        <h1>Snakessss</h1>
-        <h5>by Nasyarobby NP</h5>
-        <div class="row"><div class="col-sm-6"><p class="lead">Snakessss is a multiplayer snake games which enables you to play with other player in realtime manner.</p>
-          <a class="btn btn-lg btn-primary" href="../../components/navbar/" role="button">How to Play &raquo;</a></div></div>
-
+    </div>
+    <div id=root></div>
+  </main>
+  <!-- Modal -->
+  <div class="modal fade" id="howtoplay" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">How to Play</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h4>Move Your Snake</h4>
+          <p>
+            W / Arrow Up: move snake up<br />
+            A / Arrow Left: move snake left<br />
+            S / Arrow Down: move snake down<br />
+            D / Arrow Right: move snake right</p>
+            <h4>Eat the fruit</h4>
+            <p>Move your snake to eat fruit to score points</p>
+            <h4>Race to 3 Points</h4>
+            <p>Score 3 points to win the game</p>
+            <h4>Dont hit your enemy or your own body!</h4>
+            <p>You will lose point by doing so.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
       </div>
-      <div id=root></div>
-    </main>
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-  </body>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+    crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+    crossorigin="anonymous"></script>
+</body>
+
 </html>

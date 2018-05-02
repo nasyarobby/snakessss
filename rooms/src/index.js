@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
+var local = false;
+var gameServer = local ? "http://localhost:3001" : "https://snakessss-server.herokuapp.com/;
 class Name extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             name: props.name,
-            input: false
+            input: false,
+            parentSaveName: props.saveName
         }
         this.clickHandler = this.clickHandler.bind(this);
         this.nameChangedHandler = this.nameChangedHandler.bind(this);
@@ -17,8 +19,9 @@ class Name extends React.Component {
     }
     saveName(event) {
         this.setState({
-            input:false
+            input:false,
         })
+        this.state.parentSaveName(this.state.name)
     }
     clickHandler() {
         this.setState({
@@ -67,13 +70,17 @@ class Rooms extends React.Component {
             name: "player "+seconds,
             rooms: []
         }
+        this.saveName = this.saveName.bind(this);
+    }
+    saveName(name) {
+        this.setState({name: name})
     }
     async componentDidMount() {
         this.timer = setInterval(() => this.getRooms(), 1000);
     }
 
     async getRooms() {
-        fetch("http://localhost:3001/roomlist")
+        fetch(gameServer+"/roomlist")
             .then(results => results.json())
             .then(data => {
                 let id = 0;
@@ -91,7 +98,7 @@ class Rooms extends React.Component {
                             <td>{snakes[1] ? snakes[1].name : ""} {snakes[1] ? "(" + snakes[1].score + ")" : ""}</td>
                             <td>{snakes[2] ? snakes[2].name : ""} {snakes[2] ? "(" + snakes[2].score + ")" : ""}</td>
                             <td>{snakes[3] ? snakes[3].name : ""} {snakes[3] ? "(" + snakes[3].score + ")" : ""}</td>
-                            <td><a href={"http://localhost:3001/" + room.room + "/" + this.state.name}>Join</a></td>
+                            <td><a href={gameServer +'/'+ room.room + "/" + this.state.name}>Join</a></td>
                         </tr>
                     )
                 })
@@ -103,7 +110,7 @@ class Rooms extends React.Component {
     render() {
         return (
             <div>
-                <Name name={this.state.name} />
+                <Name name={this.state.name} saveName={this.saveName}/>
                 <h2>
                     <span>Room List</span>
                     <button className='btn btn-primary float-sm-right'>Create New Room</button>
