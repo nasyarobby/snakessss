@@ -1,5 +1,8 @@
 // https://gist.github.com/crtr0/2896891
 // https://socket.io/get-started/chat/
+
+// TODO: When only 1 snake is left. Change game state.
+
 var express = require("express");
 var path = require('path');
 var app = express();
@@ -15,13 +18,20 @@ var arena = {
     cols: 36,
     rows: 36
 }
-var countdownLength = 10;
+var countdownLength = 3;
 
 function Room(name) {
     this.name = name;
     this.snakes = {};
+    this.fruits = [];
+    this.fruits.push(new Fruit(randomIntFromInterval(0, 36), randomIntFromInterval(0, 36)));
     this.state = 1;
     this.matchStartTimestamp = null;
+    this.collisionOutcomes = [];
+    this.initCollisionOutcomes();
+    this.pixels = [];
+
+    this.goalScore = 1;
 }
 
 /* OBJECT: Room */
@@ -56,12 +66,17 @@ Room.prototype.getPixelsSocketMessage = function () {
             return _.pick(b, ['x', 'y', 'color'])
         });
     }));
+    state.push({
+        x: this.fruits[0].x,
+        y: this.fruits[0].y,
+        color: "red"
+    });
     return state;
 }
 
 Room.prototype.getPlayersInfoSocketMessage = function () {
     state = (_.map(this.snakes, function (s) {
-        return _.pick(s, ['id', 'color', 'name'])
+        return _.pick(s, ['id', 'color', 'name', 'score', 'win'])
     }));
     return state;
 }
@@ -97,7 +112,108 @@ Room.prototype.getNumberOfSnakes = function () {
     return _.values(this.getSnakes()).length;
 }
 
-/* OBJECT: ROOM */
+Room.prototype.checkCollisions = function () {
+    this.constructPixels();
+    var pixels = this.pixels;
+    var currentRoom = this;
+    // check if there is pixels containing more than 1 object
+    pixels.forEach(function (pixel) {
+        if (pixel !== undefined && pixel.length > 1) {
+            for (let i = 0; i < pixel.length; i++) {
+                for (let j = i; j < pixel.length; j++) {
+                    if (i != j) {
+                        var x = pixel[i];
+                        var y = pixel[j];
+
+                        let outcome = currentRoom.collisionOutcomes[x.constructor.name][y.constructor.name];
+
+                        if (typeof outcome !== 'undefined') {
+                            if (outcome.xGains) {
+                                x[outcome.xGains](currentRoom);
+                            };
+                            if (outcome.yGains) {
+                                y[outcome.yGains](currentRoom);
+                            }
+                            if (outcome.xLoses) {
+                                x[outcome.xLoses](currentRoom);
+                            }
+                            if (outcome.yLoses) {
+                                y[outcome.yLoses](currentRoom);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+Room.prototype.constructPixels = function () {
+    // construct the pixels position from snakes
+    var pixels = [];
+    var currentRoom = this;
+    _.forEach(this.getSnakes(), function (snake) {
+        snake.body.forEach(function (body) {
+            let position = body.y * arena.cols + body.x;
+            if (pixels[position] === undefined) {
+                pixels[position] = [];
+            }
+            pixels[position].push(body);
+        })
+    });
+
+    this.fruits.forEach(function (fruit) {
+        let position = fruit.y * arena.cols + fruit.x;
+        if (pixels[position] === undefined) {
+            pixels[position] = [];
+        }
+        pixels[position].push(fruit);
+    });
+    this.pixels = pixels;
+}
+
+Room.prototype.initCollisionOutcomes = function () {
+    //register the collision outcome between cells
+    this.registerCollisionOutcome("SnakeHead", "SnakeBody", 0, 0, "dead", 0);
+    this.registerCollisionOutcome("SnakeHead", "Wall", 0, 0, "dead", 0);
+    this.registerCollisionOutcome("SnakeBody", "Wall", 0, 0, "dead", 0);
+    this.registerCollisionOutcome("SnakeHead", "SnakeHead", 0, 0, "dead", "dead");
+    this.registerCollisionOutcome("SnakeHead", "Fruit", "eatFruit", 0, 0, "getEaten");
+
+    //to prevent random fruit generated in an occupied cell
+    this.registerCollisionOutcome("Wall", "Fruit", 0, 0, 0, "getEaten");
+    this.registerCollisionOutcome("SnakeBody", "Fruit", 0, 0, 0, "getEaten");
+    this.registerCollisionOutcome("Fruit", "Fruit", 0, 0, 0, "getEaten");
+}
+
+/*
+Register the outcome of collision between Cell X and Cell Y.
+*/
+Room.prototype.registerCollisionOutcome = function (x, y, xGains, yGains, xLoses, yLoses) {
+
+    if (typeof this.collisionOutcomes[x] === 'undefined') {
+        this.collisionOutcomes[x] = [];
+    }
+    this.collisionOutcomes[x][y] = {
+        xGains: xGains,
+        yGains: yGains,
+        xLoses: xLoses,
+        yLoses: yLoses
+    };
+
+    if (typeof this.collisionOutcomes[y] === 'undefined') {
+        this.collisionOutcomes[y] = [];
+    }
+    this.collisionOutcomes[y][x] = {
+        xGains: yGains,
+        yGains: xGains,
+        xLoses: yLoses,
+        yLoses: xLoses
+    };
+}
+
+
+/* OBJECT: ROOMS */
 
 function Rooms() {
     this.rooms = {};
@@ -124,7 +240,6 @@ Rooms.prototype.getSnakeBySocketId = function (socketid) {
     for (r in this.rooms) {
         for (s in this.rooms[r].getSnakes()) {
             if (s == socketid) {
-                console.log(this.rooms[r].snakes[s])
                 return this.rooms[r].snakes[s];
             }
         }
@@ -142,7 +257,7 @@ io.on("connection", function (socket) {
             currentRoom = rooms.initRoom(room);
             console.log(clientName + ' has joined ' + currentRoom.getName());
 
-            socket.emit("new state", {state: currentRoom.getState()});
+            socket.emit("new state", { state: currentRoom.getState() });
 
             socket.on("snake color", function (data) {
                 var requestedId = data.index;
@@ -200,11 +315,13 @@ io.on("connection", function (socket) {
 
             setInterval(function () {
                 snake = currentRoom.snakes[socket.id];
-                if (snake === undefined)
+                if (snake === undefined) {
                     return
-
-                if (currentRoom.state == 3)
+                }
+                if (currentRoom.state == 3) {
                     snake.update();
+                    currentRoom.checkCollisions();
+                }
                 else if (currentRoom.state == 2) {
                     let timeLeft = currentRoom.getTimeLeftSocketMessage();
                     if (timeLeft.timeLeft <= 0)
@@ -223,7 +340,7 @@ io.on("connection", function (socket) {
     socket.on("input", function (data) {
         //snake = rooms["101"]["snakes"][socket.id];
         snake = rooms.getSnakeBySocketId(socket.id);
-        if(snake !== undefined) {
+        if (snake !== undefined) {
             switch (data.direction) {
                 case "up":
                     snake.changeDirection("up");
@@ -256,7 +373,7 @@ function randomIntFromInterval(min, max) {
 /* EXPRESS */
 
 app.use(express.static('client'));
-server.listen(port, function () {});
+server.listen(port, function () { });
 app.get('/jquery.js', function (req, res) {
     res.sendFile(path.join(__dirname + '/node_modules/jquery/dist/jquery.min.js'));
 })
@@ -294,12 +411,17 @@ SnakeHead.prototype.constructor = SnakeHead;
 SnakeHead.prototype.grow = function (x) {
     this.parent.length += x;
 }
-SnakeHead.prototype.eatFruit = function () {
+SnakeHead.prototype.eatFruit = function (room) {
     this.grow(1);
     this.parent.score++;
+    console.log(this.parent.name+"'score is now "+this.parent.score);
+    if(this.parent.score >= room.goalScore) {
+        console.log(this.parent.name+" IS WIN.");
+        this.parent.win = true;
+    }
 }
-SnakeHead.prototype.dead = function () {
-    this.parent.dead();
+SnakeHead.prototype.dead = function (room) {
+    this.parent.dead(room);
 }
 /* OBJECT: SnakeBody */
 function SnakeBody(x, y, snake, color) {
@@ -310,15 +432,25 @@ SnakeBody.prototype = Object.create(Cell.prototype);
 SnakeBody.prototype.constructor = SnakeBody;
 
 function Fruit(x, y) {
-    Cell.call(this, x, y, arena, "green");
+    Cell.call(this, x, y, arena, "red");
 }
 
 /* OBJECT: Fruit */
 Fruit.prototype = Object.create(Cell.prototype);
 Fruit.prototype.constructor = Fruit;
-Fruit.prototype.getEaten = function () {
-    //deleteFruit(this);
-    //generateFruit();
+Fruit.prototype.getEaten = function (room) {
+    room.fruits.splice(room.fruits.findIndex(function(e) { return e == this}), 1);
+    
+    let newPosX = randomIntFromInterval(0, 36);
+    let newPosY = randomIntFromInterval(0, 36);
+    var newPos = newPosY * 36 + newPosX;
+    while (room.pixels[newPos] != undefined) {
+        newPos++;
+    }
+    newPosY = Math.floor(newPos / 36);
+    newPosX = newPos % 36;
+
+    room.fruits.push(new Fruit(newPosX, newPosY));
 }
 
 /* OBJECT: Snake */
@@ -333,6 +465,7 @@ function Snake(startingX, startingY, color, id, name) {
     this.length = 10;
     this.score = 0;
     this.ready = false;
+    this.win = false;
 
     this.changeDirection = function (direction) {
         if (direction == 'up' && this.ySpeed != 1) {
@@ -393,10 +526,20 @@ function Snake(startingX, startingY, color, id, name) {
             this.body.pop();
     }
 
-    this.dead = function () {
-        let frame = frameCount;
-        console.log("dead");
+    this.dead = function (room) {
         this.body = [];
-        this.body.push(new SnakeHead(getRandomPos(), getRandomPos(), this));
+        if(this.score > 0) {
+            this.score--;
+            this.shrink();
+        }
+        let newPosX = randomIntFromInterval(0, 36);
+        let newPosY = randomIntFromInterval(0, 36);
+        var newPos = newPosY * 36 + newPosX;
+        while (room.pixels[newPos] != undefined) {
+            newPos++;
+        }
+        newPosY = Math.floor(newPos / 36);
+        newPosX = newPos % 36;
+        this.body.push(new SnakeHead(newPosX, newPosY, this));
     }
 }
