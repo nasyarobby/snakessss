@@ -430,8 +430,8 @@ Fruit.prototype.constructor = Fruit;
 Fruit.prototype.getEaten = function (room) {
     room.fruits.splice(room.fruits.findIndex(function(e) { return e == this}), 1);
     
-    let newPosX = randomIntFromInterval(0, 36);
-    let newPosY = randomIntFromInterval(0, 36);
+    let newPosX = randomIntFromInterval(0, 35);
+    let newPosY = randomIntFromInterval(0, 35);
     var newPos = newPosY * 36 + newPosX;
     while (room.pixels[newPos] != undefined) {
         newPos++;
