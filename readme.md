@@ -1,14 +1,16 @@
 # Snakessss
 Snakessss is a classic snake game that can be played up to 4 person simulatenously in real time.
+
 The online demo can be found here: http://snakessss.herokuapp.com/
+
 Github: https://github.com/nasyarobby/snakessss
 
 ## How to play
 #####  Moving Your Snake
-W / Arrow Up: move snake up
-A / Arrow Left: move snake left
-S / Arrow Down: move snake down
-D / Arrow Right: move snake right
+- W / Arrow Up: move snake up
+- A / Arrow Left: move snake left
+- S / Arrow Down: move snake down
+- D / Arrow Right: move snake right
 
 ##### Eat the fruit
 Move your snake to eat fruit (the red pixel) to score points
@@ -33,5 +35,8 @@ Step by step how to run the game.
 7. Open the browser (usually http://localhost:3000)
 
 If you're attempting to deploy the game not in your local machine, make sure to change the variables 
-publicServerAddress in rooms\src\index.js line 4
-publicServerAddress in server.js line line 4
+- publicServerAddress in rooms\src\index.js line 4
+- publicServerAddress in server.js line line 4
+
+## News
+- Room's Name and Player's Name are now encoded as Base64 string.
