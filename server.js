@@ -1,17 +1,22 @@
-// https://gist.github.com/crtr0/2896891
-// https://socket.io/get-started/chat/
+//Variables
+var port = process.env.PORT || 3001;
+// change and uncomment the following line to deploy in public server
+var publicServerAddress = "";
 
 // TODO: When only 1 snake is left. Change game state.
-
 var express = require("express");
 var path = require('path');
 var app = express();
+const bodyParser = require('body-parser');
+app.use(bodyParser.json()); // bodyParser for accessing POST parameters
+app.use(bodyParser.urlencoded({ extended: true }));
+
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
-var port = process.env.PORT || 3001;
 var _ = require('lodash');
+const idleRoomMaxTime = 30 * 60; //in second
 
-var frontEnd = "https://snakessss.herokuapp.com";
+var frontEnd = typeof publicServerAddress === undefined && publicServerAddress ? publicServerAddress : "http://localhost:" + port;
 
 var lastUpdateTime = (new Date()).getTime();
 //var rooms = {};
@@ -251,7 +256,7 @@ Rooms.prototype.getSnakeBySocketId = function (socketid) {
 io.on("connection", function (socket) {
     // everytime a user connect to a room.
     socket.on("join", function (data) {
-        var room = data.room=="" ? "Room101" : data.room;
+        var room = data.room == "" ? "Room101" : data.room;
         var clientName = data.name;
         var currentRoom;
 
@@ -403,9 +408,9 @@ SnakeHead.prototype.grow = function (x) {
 SnakeHead.prototype.eatFruit = function (room) {
     this.grow(1);
     this.parent.score++;
-    console.log(this.parent.name+"'score is now "+this.parent.score);
-    if(this.parent.score >= room.goalScore) {
-        console.log(this.parent.name+" IS WIN.");
+    console.log(this.parent.name + "'score is now " + this.parent.score);
+    if (this.parent.score >= room.goalScore) {
+        console.log(this.parent.name + " IS WIN.");
         this.parent.win = true;
     }
 }
@@ -428,8 +433,8 @@ function Fruit(x, y) {
 Fruit.prototype = Object.create(Cell.prototype);
 Fruit.prototype.constructor = Fruit;
 Fruit.prototype.getEaten = function (room) {
-    room.fruits.splice(room.fruits.findIndex(function(e) { return e == this}), 1);
-    
+    room.fruits.splice(room.fruits.findIndex(function (e) { return e == this }), 1);
+
     let newPosX = randomIntFromInterval(0, 35);
     let newPosY = randomIntFromInterval(0, 35);
     var newPos = newPosY * 36 + newPosX;
@@ -517,7 +522,7 @@ function Snake(startingX, startingY, color, id, name) {
 
     this.dead = function (room) {
         this.body = [];
-        if(this.score > 0) {
+        if (this.score > 0) {
             this.score--;
             this.shrink();
         }
@@ -537,15 +542,24 @@ function Snake(startingX, startingY, color, id, name) {
 
 app.use(express.static('client'));
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
-  });
-  
+});
 
-server.listen(port, function () { });
-app.get("/:roomname/:username", function(req, res) {
+server.listen(port, function () {
+    console.log("Server is running...");
+});
+
+app.post("/createroom", function (req, res) {
+    console.log(req.body);
+    let roomname = req.body.roomName;
+    let room = rooms.initRoom(roomname);
+    res.send(JSON.stringify({ room: room.name, success: true }));
+});
+
+app.get("/:roomname/:username", function (req, res) {
     res.sendFile(path.join(__dirname + '/client/index.html'));
 })
 app.get('/jquery.js', function (req, res) {
@@ -553,11 +567,11 @@ app.get('/jquery.js', function (req, res) {
 })
 app.get('/roomlist', function (req, res) {
     var roomList = _.keys(rooms.rooms);
-    var ret = {results: []};
+    var ret = { results: [] };
     roomList.forEach(e => {
         let snakes = rooms.rooms[e].getPlayersInfoSocketMessage();
         let running = rooms.rooms[e].isRunning();
-        ret.results.push({room: e, snakes: snakes, running: running})
+        ret.results.push({ room: e, snakes: snakes, running: running })
     })
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify(ret));

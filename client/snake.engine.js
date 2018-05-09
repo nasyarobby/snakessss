@@ -24,8 +24,8 @@ var names = [
 var windowPath = window.location.pathname;
 var params = windowPath.split("/");
 
-var room = params[1];
-var name = params[2] ? params[2] : names[randomIntFromInterval(0, 5)];
+var room = window.atob(params[1]);
+var name = params[2] ? window.atob(params[2]) : names[randomIntFromInterval(0, 5)];
 
 var playerId;
 function setup() {
